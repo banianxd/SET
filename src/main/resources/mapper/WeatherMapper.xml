@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zew.demo.iot.mapper.WeatherMapper">
+
+    <resultMap id="BaseResultMap" type="com.zew.demo.iot.model.Weather">
+        <id column="ts" jdbcType="TIMESTAMP" property="ts"/>
+        <result column="temperature" jdbcType="INTEGER" property="temperature"/>
+        <result column="humidity" jdbcType="FLOAT" property="humidity"/>
+    </resultMap>
+
+    <update id="createTable">
+        create table if not exists ${dbName}.${tableName}(ts timestamp, temperature int, humidity float);
+    </update>
+
+    <update id="dropTable" parameterType="java.lang.String">
+        drop ${tableName}
+    </update>
+
+    <insert id="insert" parameterType="com.zew.demo.iot.model.Weather">
+        insert into db.weather (ts,temperature, humidity) values (now, #{temperature,jdbcType=INTEGER}, #{humidity,jdbcType=FLOAT})
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        insert into db.weather(ts,temperature, humidity) values
+        <foreach separator=" " collection="list" item="weather" index="index">
+            (now + #{index}a, #{weather.temperature}, #{weather.humidity})
+        </foreach>
+    </insert>
+
+    <sql id="Base_Column_List">
+        ts, temperature, humidity
+    </sql>
+
+    <select id="select" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from db.weather
+        order by ts desc
+        <if test="limit != null">
+            limit #{limit,jdbcType=BIGINT}
+        </if>
+        <if test="offset != null">
+            offset #{offset,jdbcType=BIGINT}
+        </if>
+    </select>
+</mapper>
